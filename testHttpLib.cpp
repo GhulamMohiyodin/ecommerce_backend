@@ -1,13 +1,10 @@
 ﻿#include "httplib.h"
 #include "nlohmann/json.hpp"
-
 #include "Product.h"
 #include "BTree.h"
 #include "HashByID.h"
-
 #include <fstream>
 #include <limits>
-
 using namespace httplib;
 using json = nlohmann::json;
 
@@ -93,8 +90,9 @@ void collectProducts(BTreeNode* node, std::vector<Product*>& products)
 
 /* ================= CORS HELPER ================= */
 
-void addCORS(Response& res) {
-    res.set_header("Access-Control-Allow-Origin", "http://localhost:4200");
+void addCORS(Response& res) 
+{
+
     res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     res.set_header("Access-Control-Allow-Headers", "Content-Type");
 }
@@ -106,10 +104,17 @@ int main()
 {
     BTree tree(3);
     HashByID hashById(101);
-
     loadFromFile(tree, hashById);
-
     Server svr;
+    svr.set_default_headers({
+    {"Access-Control-Allow-Origin", "*"},
+    {"Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"},
+    {"Access-Control-Allow-Headers", "Content-Type"}
+        });
+    svr.Options(".*", [](const httplib::Request&, httplib::Response& res) {
+        res.status = 200;
+        });
+
 
     // OPTIONS route for preflight
     svr.Options(".*", [&](const Request& req, Response& res) {
