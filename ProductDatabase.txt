@@ -1,0 +1,401 @@
+101
+Basit
+24000
+9
+102
+Keyboard
+3500
+25
+103
+Mouse
+1800
+40
+104
+Laptop
+185000
+8
+105
+Printer
+42000
+6
+106
+Scanner
+38000
+5
+107
+Webcam
+9500
+20
+108
+Headphones
+7200
+30
+109
+Speakers
+12500
+15
+110
+USB Flash Drive 32GB
+2200
+50
+111
+USB Flash Drive 64GB
+3800
+45
+112
+External Hard Drive 1TB
+18500
+12
+113
+SSD 512GB
+21000
+18
+114
+SSD 1TB
+39500
+10
+115
+RAM 8GB
+8500
+35
+116
+RAM 16GB
+16500
+20
+117
+Graphics Card GTX 1660
+98000
+4
+118
+Graphics Card RTX 3060
+185000
+3
+119
+Power Supply 650W
+14500
+14
+120
+Motherboard ATX
+32000
+9
+121
+CPU Intel i5
+68000
+7
+122
+CPU Intel i7
+115000
+5
+123
+CPU AMD Ryzen 5
+72000
+6
+124
+CPU AMD Ryzen 7
+128000
+4
+125
+Cooling Fan
+2500
+40
+126
+CPU Cooler
+7800
+15
+127
+Laptop Charger
+9500
+18
+128
+HDMI Cable
+1200
+60
+129
+DisplayPort Cable
+1800
+45
+130
+Ethernet Cable
+900
+80
+131
+WiFi Router
+15500
+10
+132
+Network Switch
+12500
+8
+133
+Bluetooth Adapter
+1800
+35
+134
+Wireless Mouse
+3200
+30
+135
+Wireless Keyboard
+5800
+22
+136
+Gaming Chair
+45000
+5
+137
+Office Chair
+28000
+7
+138
+Desk Lamp
+4200
+20
+139
+UPS 650VA
+16500
+9
+140
+UPS 1000VA
+28500
+6
+141
+Projector
+98000
+4
+142
+Smart TV 43 inch
+115000
+5
+143
+Smart TV 55 inch
+165000
+3
+144
+Sound Bar
+32000
+8
+145
+Microphone
+9500
+18
+146
+Web Server Rack
+125000
+2
+147
+External DVD Writer
+7800
+12
+148
+Memory Card 64GB
+2600
+40
+149
+Memory Card 128GB
+4800
+30
+150
+Laptop Bag
+5200
+25
+151
+Tablet
+65000
+6
+152
+Smartphone
+135000
+7
+153
+Power Bank 20000mAh
+6800
+20
+154
+Wireless Charger
+4200
+18
+155
+Smart Watch
+28500
+10
+156
+VR Headset
+75000
+4
+157
+Game Controller
+6500
+16
+158
+Joystick
+8800
+9
+159
+Gaming Mouse
+5200
+22
+160
+Mechanical Keyboard
+12500
+12
+161
+NAS Storage
+98000
+3
+162
+Server HDD 4TB
+68500
+4
+163
+Server RAM 32GB
+72000
+5
+164
+Firewall Device
+145000
+2
+165
+IP Camera
+16500
+14
+166
+CCTV Camera
+12500
+18
+167
+NVR System
+58000
+4
+168
+Biometric Scanner
+22500
+6
+169
+Barcode Scanner
+18500
+8
+170
+POS Machine
+95000
+3
+171
+Receipt Printer
+28000
+5
+172
+Cash Drawer
+16500
+7
+173
+Conference Speaker
+42000
+4
+174
+Digital Whiteboard
+185000
+2
+175
+Laser Pointer
+2500
+30
+176
+Portable SSD 1TB
+42000
+8
+177
+Portable SSD 2TB
+78000
+5
+178
+Thunderbolt Dock
+38000
+6
+179
+USB Hub
+3200
+25
+180
+Laptop Stand
+4500
+20
+181
+Screen Cleaner Kit
+1800
+40
+182
+Cable Organizer
+1200
+50
+183
+Desk Mat
+2800
+30
+184
+Ergonomic Mouse
+6500
+14
+185
+Noise Cancelling Headphones
+28500
+6
+186
+Smart Plug
+3200
+18
+187
+Smart Bulb
+2200
+25
+188
+Mini Projector
+42000
+5
+189
+Portable Speaker
+16500
+10
+190
+Webcam 4K
+28500
+6
+191
+Graphics Tablet
+32000
+7
+192
+Drawing Pen
+5800
+15
+193
+Laptop Cooling Pad
+4200
+18
+194
+External Sound Card
+7800
+9
+195
+VR Controllers
+18500
+4
+196
+Smart Glasses
+125000
+2
+197
+AI Speaker
+28500
+5
+198
+Cloud Backup Device
+98000
+3
+199
+Industrial Router
+165000
+2
+200
+Enterprise Switch
+285000
+1
+#
