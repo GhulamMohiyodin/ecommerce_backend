@@ -5,6 +5,8 @@
 #include "HashByID.h"
 #include <fstream>
 #include <limits>
+#include <vector>
+
 using namespace httplib;
 using json = nlohmann::json;
 
@@ -16,9 +18,8 @@ void loadFromFile(BTree& tree, HashByID& hashById)
     if (!file) return;
 
     std::string line;
-    while (true)
+    while (getline(file, line))
     {
-        if (!getline(file, line)) break;
         if (line == "#") break;
         if (line.empty()) continue;
 
@@ -88,184 +89,207 @@ void collectProducts(BTreeNode* node, std::vector<Product*>& products)
         collectProducts(node->C[i], products);
 }
 
-/* ================= CORS HELPER ================= */
+/* ================= CORS ================= */
 
-void addCORS(Response& res) 
+void addCORS(Response& res)
 {
-
+    res.set_header("Access-Control-Allow-Origin", "*");
     res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     res.set_header("Access-Control-Allow-Headers", "Content-Type");
 }
 
-
-/* ================= MAIN BACKEND ================= */
+/* ================= MAIN ================= */
 
 int main()
 {
     BTree tree(3);
     HashByID hashById(101);
     loadFromFile(tree, hashById);
+
     Server svr;
-    svr.set_default_headers({
-    {"Access-Control-Allow-Origin", "*"},
-    {"Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"},
-    {"Access-Control-Allow-Headers", "Content-Type"}
-        });
-    svr.Options(".*", [](const httplib::Request&, httplib::Response& res) {
-        res.status = 200;
-        });
 
-
-    // OPTIONS route for preflight
-    svr.Options(".*", [&](const Request& req, Response& res) {
+    svr.Options(".*", [](const Request&, Response& res) {
         addCORS(res);
         res.status = 200;
         });
 
     /* -------- ADD PRODUCT -------- */
-    svr.Post("/product/add", [&](const Request& req, Response& res)
+    svr.Post("/product/add", [&](const Request& req, Response& res) {
+        addCORS(res);
+
+        json body = json::parse(req.body, nullptr, false);
+        if (!body.contains("id") || !body.contains("name") ||
+            !body.contains("price") || !body.contains("stock"))
         {
-            addCORS(res);  // ✅ CORS header added
+            res.set_content("{\"error\":\"Invalid JSON\"}", "application/json");
+            return;
+        }
 
-            json body = json::parse(req.body);
-            int id = body["id"];
+        int id = body["id"];
+        if (hashById.contains(id))
+        {
+            res.set_content("{\"error\":\"Product already exists\"}", "application/json");
+            return;
+        }
 
-            if (hashById.contains(id))
-            {
-                res.set_content("{\"error\":\"Product already exists\"}", "application/json");
-                return;
-            }
+        Product* p = new Product(
+            id,
+            body["name"].get<std::string>(),
+            body["price"],
+            body["stock"]
+        );
 
-            Product* p = new Product(
-                id,
-                (std::string)body["name"],
-                (int)body["price"],
-                (int)body["stock"]
-            );
+        tree.insert(p);
+        hashById.insert(id);
+        saveToFile(tree);
 
-            tree.insert(p);
-            hashById.insert(id);
-            saveToFile(tree);   // ✅ FIX
-
-            res.set_content("{\"status\":\"Product added\"}", "application/json");
+        res.set_content("{\"status\":\"Product added\"}", "application/json");
         });
 
     /* -------- DELETE PRODUCT -------- */
-    svr.Delete("/product/delete", [&](const Request& req, Response& res)
+    svr.Delete("/product/delete", [&](const Request& req, Response& res) {
+        addCORS(res);
+
+        json body = json::parse(req.body, nullptr, false);
+        if (!body.contains("id"))
         {
-            addCORS(res);  // ✅ CORS header added
+            res.set_content("{\"error\":\"Invalid JSON\"}", "application/json");
+            return;
+        }
 
-            json body = json::parse(req.body);
-            int id = body["id"];
+        int id = body["id"];
+        if (!hashById.contains(id))
+        {
+            res.set_content("{\"error\":\"Product not found\"}", "application/json");
+            return;
+        }
 
-            if (!hashById.contains(id))
-            {
-                res.set_content("{\"error\":\"Product not found\"}", "application/json");
-                return;
-            }
+        tree.remove(id);
+        hashById.remove(id);
+        saveToFile(tree);
 
-            tree.remove(id);
-            hashById.remove(id);
-            saveToFile(tree);   // ✅ FIX
-
-            res.set_content("{\"status\":\"Product deleted\"}", "application/json");
+        res.set_content("{\"status\":\"Product deleted\"}", "application/json");
         });
 
     /* -------- UPDATE PRODUCT -------- */
-    svr.Put("/product/update", [&](const Request& req, Response& res)
+    svr.Put("/product/update", [&](const Request& req, Response& res) {
+        addCORS(res);
+
+        json body = json::parse(req.body, nullptr, false);
+        if (!body.contains("id"))
         {
-            addCORS(res);  // ✅ CORS header added
+            res.set_content("{\"error\":\"Invalid JSON\"}", "application/json");
+            return;
+        }
 
-            json body = json::parse(req.body);
-            int id = body["id"];
+        int id = body["id"];
+        if (!hashById.contains(id))
+        {
+            res.set_content("{\"error\":\"Product not found\"}", "application/json");
+            return;
+        }
 
-            Product* p = tree.search(id);
-            if (!p)
-            {
-                res.set_content("{\"error\":\"Product not found\"}", "application/json");
-                return;
-            }
+        Product* p = tree.search(id);
+        if (!p)
+        {
+            res.set_content("{\"error\":\"Product not found\"}", "application/json");
+            return;
+        }
 
-            if (!body["name"].dump().empty())
-                p->SetName((std::string)body["name"]);
-            if ((int)body["price"] > 0)
-                p->SetPrice((int)body["price"]);
-            if ((int)body["stock"] >= 0)
-                p->SetStock((int)body["stock"]);
+        if (body.contains("name"))  p->SetName(body["name"]);
+        if (body.contains("price")) p->SetPrice(body["price"]);
+        if (body.contains("stock")) p->SetStock(body["stock"]);
 
-            saveToFile(tree);   // ✅ FIX
-            res.set_content("{\"status\":\"Product updated\"}", "application/json");
+        saveToFile(tree);
+        res.set_content("{\"status\":\"Product updated\"}", "application/json");
         });
 
     /* -------- BUY PRODUCT -------- */
-    svr.Post("/product/buy", [&](const Request& req, Response& res)
+    svr.Post("/product/buy", [&](const Request& req, Response& res) {
+        addCORS(res);
+
+        json body = json::parse(req.body, nullptr, false);
+        if (!body.contains("id") || !body.contains("quantity"))
         {
-            addCORS(res);  // ✅ CORS header added
+            res.set_content("{\"error\":\"Invalid JSON\"}", "application/json");
+            return;
+        }
 
-            json body = json::parse(req.body);
-            int id = body["id"];
-            int qty = body["quantity"];
+        int id = body["id"];
+        int qty = body["quantity"];
 
-            Product* p = tree.search(id);
-            if (!p || qty <= 0 || p->GetStock() < qty)
-            {
-                res.set_content("{\"error\":\"Invalid purchase\"}", "application/json");
-                return;
-            }
+        if (!hashById.contains(id))
+        {
+            res.set_content("{\"error\":\"Product not found\"}", "application/json");
+            return;
+        }
 
-            p->BuyProduct(qty);
-            saveToFile(tree);   // ✅ FIX
+        Product* p = tree.search(id);
+        if (!p || qty <= 0 || p->GetStock() < qty)
+        {
+            res.set_content("{\"error\":\"Invalid purchase\"}", "application/json");
+            return;
+        }
 
-            res.set_content("{\"status\":\"Purchase successful\"}", "application/json");
+        p->BuyProduct(qty);
+        saveToFile(tree);
+
+        res.set_content("{\"status\":\"Purchase successful\"}", "application/json");
         });
 
-    svr.Get("/products", [&](const Request&, Response& res)
+    /* -------- GET ALL PRODUCTS -------- */
+    svr.Get("/products", [&](const Request&, Response& res) {
+        addCORS(res);
+
+        std::vector<Product*> products;
+        collectProducts(tree.GetRoot(), products);
+
+        json result = json::array();
+        for (auto* p : products)
         {
-            addCORS(res);  // ✅ CORS header added
+            result.push_back({
+                {"id", p->GetProductID()},
+                {"name", p->GetName()},
+                {"price", p->GetPrice()},
+                {"stock", p->GetStock()}
+                });
+        }
 
-            std::vector<Product*> products;
-            collectProducts(tree.GetRoot(), products);
-
-            json result;   // object-based JSON
-
-            int index = 0;
-            for (auto* p : products)
-            {
-                json item;
-                item["id"] = p->GetProductID();
-                item["name"] = p->GetName();
-                item["price"] = p->GetPrice();
-                item["stock"] = p->GetStock();
-
-                result[std::to_string(index)] = item;
-                index++;
-            }
-
-            res.set_content(result.dump(), "application/json");
+        res.set_content(result.dump(), "application/json");
         });
-
 
     /* -------- SEARCH PRODUCT -------- */
-    svr.Get("/product/search", [&](const Request& req, Response& res)
+    svr.Get("/product/search", [&](const Request& req, Response& res) {
+        addCORS(res);
+
+        if (!req.has_param("id"))
         {
-            addCORS(res);  // ✅ CORS header added
+            res.set_content("{\"error\":\"Missing id\"}", "application/json");
+            return;
+        }
 
-            int id = stoi(req.get_param_value("id"));
-            Product* p = tree.search(id);
+        int id = stoi(req.get_param_value("id"));
+        if (!hashById.contains(id))
+        {
+            res.set_content("{\"error\":\"Product not found\"}", "application/json");
+            return;
+        }
 
-            if (!p)
-            {
-                res.set_content("{\"error\":\"Product not found\"}", "application/json");
-                return;
-            }
+        Product* p = tree.search(id);
+        if (!p)
+        {
+            res.set_content("{\"error\":\"Product not found\"}", "application/json");
+            return;
+        }
 
-            json out;
-            out["id"] = p->GetProductID();
-            out["name"] = p->GetName();
-            out["price"] = p->GetPrice();
-            out["stock"] = p->GetStock();
+        json out = {
+            {"id", p->GetProductID()},
+            {"name", p->GetName()},
+            {"price", p->GetPrice()},
+            {"stock", p->GetStock()}
+        };
 
-            res.set_content(out.dump(), "application/json");
+        res.set_content(out.dump(), "application/json");
         });
 
     svr.listen("0.0.0.0", 8080);
